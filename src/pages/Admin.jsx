@@ -190,7 +190,7 @@ export default function Admin() {
             color: 'var(--gold-light)', marginBottom: '8px',
           }}>Admin Panel</h1>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '28px' }}>
-            Masters 2025 Sweepstake
+            Masters 2026 Sweepstake
           </p>
           <input
             style={{ ...inputStyle, marginBottom: '12px', textAlign: 'center' }}
