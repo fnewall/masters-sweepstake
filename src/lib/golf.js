@@ -31,11 +31,7 @@ export async function fetchMastersLeaderboard() {
       const totalScoreVal = parseInt(c.score) || roundScores.reduce((sum, l) => sum + (parseInt(l.value) || 0), 0)
 
       // Today's round score
-      const todayScore = roundScores.find(l => l.period === round)
-          ? (parseInt(roundScores.find(l => l.period === round).value) || 0)
-          : roundScores.length > 0
-            ? (parseInt(roundScores[roundScores.length - 1].value) || 0)
-            : 0
+      const todayScore = currentRoundData ? (parseInt(currentRoundData.value) || 0) : 0
 
       // Thru holes - stats[5] appears to be holes played
       const currentRoundData = linescores.find(l => l.period === round)
