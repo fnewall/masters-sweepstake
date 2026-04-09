@@ -1,7 +1,7 @@
 export async function fetchMastersLeaderboard() {
   try {
     const res = await fetch(
-      `https://site.api.espn.com/apis/site/v2/sports/golf/pga/leaderboard?season=2025`,
+      `https://site.api.espn.com/apis/site/v2/sports/golf/pga/leaderboard?season=2026`,
       { cache: 'no-store' }
     )
     if (!res.ok) throw new Error('ESPN fetch failed')
