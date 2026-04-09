@@ -28,7 +28,7 @@ export async function fetchMastersLeaderboard() {
       // Total score is in linescores - each entry is a round
       // value is score relative to par for that round
       const roundScores = linescores.filter(l => l.scoreType?.displayValue !== undefined)
-      const totalScoreVal = roundScores.reduce((sum, l) => sum + (parseInt(l.value) || 0), 0)
+      const totalScoreVal = parseInt(c.score) || roundScores.reduce((sum, l) => sum + (parseInt(l.value) || 0), 0)
 
       // Today's round score
       const todayScore = roundScores.length > 0
@@ -36,10 +36,8 @@ export async function fetchMastersLeaderboard() {
         : 0
 
       // Thru holes - stats[5] appears to be holes played
-      const thruVal = stats[5]?.displayValue || '-'
-
-      // Has started if any round scores exist
-      const hasStarted = roundScores.length > 0 || (thruVal !== '-' && thruVal !== '0')
+      const thruVal = stats[5]?.displayValue && stats[5].displayValue !== '0' ? stats[5].displayValue : '-'
+      const hasStarted = parseInt(c.score) !== undefined || roundScores.length > 0 || (thruVal !== '-' && thruVal !== '0')
 
       return {
         id: athlete.id,
