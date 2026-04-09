@@ -20,37 +20,27 @@ export async function fetchMastersLeaderboard() {
     const status = competition?.status?.type?.description || 'In Progress'
     const round = competition?.status?.period || 1
 
+    console.log('ESPN competitor full:', JSON.stringify(competitors[0]))
+
     const golfers = competitors.map((c, index) => {
       const athlete = c.athlete || {}
-
-      // Score is in linescores - sum all completed rounds
       const linescores = c.linescores || []
       const completedScores = linescores.filter(l => l.scoreType?.displayValue !== undefined)
-      
-      // Total score relative to par
       const totalScoreVal = completedScores.reduce((sum, l) => sum + (parseInt(l.value) || 0), 0)
-      
-      // Today's score is the last linescore
-      const todayScore = completedScores.length > 0 
+      const todayScore = completedScores.length > 0
         ? (parseInt(completedScores[completedScores.length - 1].value) || 0)
         : 0
-
-      // Thru holes - from statistics
-      const thruStat = c.statistics?.categories?.[0]?.stats?.find(s => s.displayValue === '3' || parseInt(s.displayValue) > 0)
-      const thruVal = completedScores.length > 0 ? String(completedScores[completedScores.length - 1].period || '-') : '-'
-
-      // Has the player started?
       const hasStarted = completedScores.length > 0
-
-      // Position is based on array order (ESPN returns them sorted)
-      const position = index + 1
+      const thruVal = completedScores.length > 0
+        ? String(completedScores[completedScores.length - 1].period || '-')
+        : '-'
 
       return {
         id: athlete.id,
         name: athlete.displayName || athlete.fullName || 'Unknown',
         shortName: athlete.shortName || athlete.displayName,
-        position: hasStarted ? position : 999,
-        positionDisplay: hasStarted ? `${position}` : '-',
+        position: hasStarted ? index + 1 : 999,
+        positionDisplay: hasStarted ? `${index + 1}` : '-',
         totalScore: totalScoreVal,
         today: todayScore,
         thru: thruVal,
@@ -59,21 +49,18 @@ export async function fetchMastersLeaderboard() {
       }
     })
 
-    // Re-sort by total score for those who have started
     const started = golfers.filter(g => g.hasStarted).sort((a, b) => a.totalScore - b.totalScore)
     const notStarted = golfers.filter(g => !g.hasStarted)
-
-    // Assign proper positions
     started.forEach((g, i) => {
       g.position = i + 1
       g.positionDisplay = `${i + 1}`
     })
 
-    return { 
-      golfers: [...started, ...notStarted], 
-      round, 
-      status, 
-      eventName: masters.name 
+    return {
+      golfers: [...started, ...notStarted],
+      round,
+      status,
+      eventName: masters.name
     }
   } catch (err) {
     console.error('Failed to fetch leaderboard:', err)
@@ -107,7 +94,6 @@ export function calculateSweepstakeScores(participants, golfers) {
 
     const pickDetails = picks.map(pick => {
       const searchName = pick.golfer_name.toLowerCase().trim()
-
       let golfer = golfers.find(g => g.name.toLowerCase().trim() === searchName)
       if (!golfer) golfer = golfers.find(g => fuzzyMatch(searchName, g.name))
       if (!golfer) {
@@ -142,9 +128,9 @@ export function calculateSweepstakeScores(participants, golfers) {
         position,
         positionDisplay,
         isCut,
-        score: golfer?.totalScore !== undefined 
-          ? golfer.totalScore === 0 ? 'E' 
-            : golfer.totalScore > 0 ? `+${golfer.totalScore}` 
+        score: golfer?.totalScore !== undefined
+          ? golfer.totalScore === 0 ? 'E'
+            : golfer.totalScore > 0 ? `+${golfer.totalScore}`
             : `${golfer.totalScore}`
           : '-',
         today: golfer?.today || 0,
