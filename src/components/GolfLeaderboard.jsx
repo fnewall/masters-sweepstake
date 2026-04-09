@@ -41,16 +41,16 @@ export default function GolfLeaderboard({ golfers, round, status }) {
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '40px 1fr 50px 50px 50px',
+        gridTemplateColumns: '40px 1fr 50px 60px',
         padding: '8px 16px',
         fontSize: '9px',
         color: 'var(--text-muted)',
         letterSpacing: '0.1em',
         borderBottom: '1px solid var(--border)',
       }}>
-        <span>POS</span><span>PLAYER</span>
+        <span>POS</span>
+        <span>PLAYER</span>
         <span style={{ textAlign: 'right' }}>SCORE</span>
-        <span style={{ textAlign: 'right' }}>TODAY</span>
         <span style={{ textAlign: 'right' }}>THRU</span>
       </div>
 
@@ -63,7 +63,7 @@ export default function GolfLeaderboard({ golfers, round, status }) {
         {top20.map((g, i) => (
           <div key={g.id || i} style={{
             display: 'grid',
-            gridTemplateColumns: '40px 1fr 50px 50px 50px',
+            gridTemplateColumns: '40px 1fr 50px 60px',
             padding: '9px 16px',
             borderBottom: '1px solid rgba(255,255,255,0.04)',
             animation: `rise 0.3s ease ${i * 0.03}s both`,
@@ -82,15 +82,7 @@ export default function GolfLeaderboard({ golfers, round, status }) {
               fontSize: '11px', textAlign: 'right',
               color: g.totalScore < 0 ? '#4ade80' : g.totalScore > 0 ? '#f87171' : 'var(--text-muted)',
             }}>
-              {typeof g.totalScore === 'number'
-                ? g.totalScore === 0 ? 'E' : g.totalScore > 0 ? `+${g.totalScore}` : g.totalScore
-                : g.score}
-            </div>
-            <div style={{
-              fontSize: '11px', textAlign: 'right',
-              color: g.today < 0 ? '#4ade80' : g.today > 0 ? '#f87171' : 'var(--text-muted)',
-            }}>
-              {g.today === 0 ? 'E' : g.today > 0 ? `+${g.today}` : g.today}
+              {g.totalScore === 0 ? 'E' : g.totalScore > 0 ? `+${g.totalScore}` : g.totalScore}
             </div>
             <div style={{ fontSize: '11px', textAlign: 'right', color: 'var(--text-muted)' }}>
               {g.thru}
