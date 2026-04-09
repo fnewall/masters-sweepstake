@@ -69,7 +69,7 @@ export default function Leaderboard() {
             fontFamily: "'DM Mono', monospace",
             fontSize: '10px', letterSpacing: '0.3em',
             color: 'var(--green-light)', marginBottom: '8px',
-          }}>AUGUSTA NATIONAL · 2025</div>
+          }}>AUGUSTA NATIONAL · 2026</div>
           <h1 style={{
             fontFamily: "'Playfair Display', serif",
             fontSize: 'clamp(32px, 6vw, 60px)',
