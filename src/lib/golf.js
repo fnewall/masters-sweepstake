@@ -20,20 +20,26 @@ export async function fetchMastersLeaderboard() {
     const status = competition?.status?.type?.description || 'In Progress'
     const round = competition?.status?.period || 1
 
-    console.log('ESPN competitor full:', JSON.stringify(competitors[0]))
-
     const golfers = competitors.map((c, index) => {
       const athlete = c.athlete || {}
       const linescores = c.linescores || []
-      const completedScores = linescores.filter(l => l.scoreType?.displayValue !== undefined)
-      const totalScoreVal = completedScores.reduce((sum, l) => sum + (parseInt(l.value) || 0), 0)
-      const todayScore = completedScores.length > 0
-        ? (parseInt(completedScores[completedScores.length - 1].value) || 0)
+      const stats = c.statistics?.categories?.[0]?.stats || []
+
+      // Total score is in linescores - each entry is a round
+      // value is score relative to par for that round
+      const roundScores = linescores.filter(l => l.scoreType?.displayValue !== undefined)
+      const totalScoreVal = roundScores.reduce((sum, l) => sum + (parseInt(l.value) || 0), 0)
+
+      // Today's round score
+      const todayScore = roundScores.length > 0
+        ? (parseInt(roundScores[roundScores.length - 1].value) || 0)
         : 0
-      const hasStarted = completedScores.length > 0
-      const thruVal = completedScores.length > 0
-        ? String(completedScores[completedScores.length - 1].period || '-')
-        : '-'
+
+      // Thru holes - stats[5] appears to be holes played
+      const thruVal = stats[5]?.displayValue || '-'
+
+      // Has started if any round scores exist
+      const hasStarted = roundScores.length > 0 || (thruVal !== '-' && thruVal !== '0')
 
       return {
         id: athlete.id,
