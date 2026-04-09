@@ -24,12 +24,9 @@ export async function fetchMastersLeaderboard() {
         c.status?.displayValue?.toLowerCase().includes('cut') ||
         c.status?.type?.description?.toLowerCase().includes('cut')
 
-      let position = c.status?.position?.id
+      const position = c.status?.position?.id
         ? parseInt(c.status.position.id)
         : 999
-
-      const scoreVal = c.statistics?.find(s => s.name === 'totalScore')?.displayValue
-        || c.score || 'E'
 
       const totalScore = parseInt(c.statistics?.find(s => s.name === 'totalScore')?.value) || 0
       const todayScore = parseInt(c.linescores?.slice(-1)[0]?.value) || 0
@@ -40,7 +37,7 @@ export async function fetchMastersLeaderboard() {
         shortName: athlete.shortName || athlete.displayName,
         position: isCut ? null : position,
         positionDisplay: isCut ? 'CUT' : (c.status?.position?.displayName || `${position}`),
-        score: scoreVal,
+        score: c.score || 'E',
         totalScore,
         today: todayScore,
         thru: c.status?.thru || '-',
@@ -62,24 +59,47 @@ export async function fetchMastersLeaderboard() {
   }
 }
 
-export function calculateSweepstakeScores(participants, golfers) {
-  const positionMap = {}
-  golfers.forEach(g => {
-    positionMap[g.name.toLowerCase().trim()] = g
-  })
+function fuzzyMatch(search, target) {
+  search = search.toLowerCase().trim()
+  target = target.toLowerCase().trim()
+  if (target.includes(search)) return true
+  const searchParts = search.split(' ')
+  const targetParts = target.split(' ')
+  // Check last name match with typo tolerance
+  const searchLast = searchParts[searchParts.length - 1]
+  const targetLast = targetParts[targetParts.length - 1]
+  if (searchLast.length > 3) {
+    let diff = 0
+    const len = Math.max(searchLast.length, targetLast.length)
+    for (let i = 0; i < len; i++) {
+      if (searchLast[i] !== targetLast[i]) diff++
+    }
+    if (diff <= 2) return true
+  }
+  // Check if all search parts appear somewhere in target
+  return searchParts.every(part => part.length > 2 && target.includes(part))
+}
 
+export function calculateSweepstakeScores(participants, golfers) {
   const scored = participants.map(p => {
     const picks = p.picks || []
     let totalScore = 0
+
     const pickDetails = picks.map(pick => {
-      const name = pick.golfer_name.toLowerCase().trim()
-      let golfer = positionMap[name]
+      const searchName = pick.golfer_name.toLowerCase().trim()
+
+      // Try exact match first
+      let golfer = golfers.find(g => g.name.toLowerCase().trim() === searchName)
+
+      // Try fuzzy match
       if (!golfer) {
-        const lastName = name.split(' ').slice(-1)[0]
-        golfer = golfers.find(g =>
-          g.name.toLowerCase().includes(lastName) ||
-          g.shortName?.toLowerCase().includes(lastName)
-        )
+        golfer = golfers.find(g => fuzzyMatch(searchName, g.name))
+      }
+
+      // Try last name only
+      if (!golfer) {
+        const lastName = searchName.split(' ').slice(-1)[0]
+        golfer = golfers.find(g => g.name.toLowerCase().includes(lastName))
       }
 
       let points = 100
