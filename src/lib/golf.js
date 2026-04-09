@@ -38,7 +38,9 @@ export async function fetchMastersLeaderboard() {
             : 0
 
       // Thru holes - stats[5] appears to be holes played
-      const thruVal = stats[5]?.displayValue && stats[5].displayValue !== '0' ? stats[5].displayValue : '-'
+      const currentRoundData = linescores.find(l => l.period === round)
+      const holesPlayed = currentRoundData?.linescores?.length || 0
+      const thruVal = holesPlayed > 0 ? String(holesPlayed) : '-'
       const hasStarted = parseInt(c.score) !== undefined || roundScores.length > 0 || (thruVal !== '-' && thruVal !== '0')
 
       return {
