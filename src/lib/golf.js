@@ -1,7 +1,7 @@
 export async function fetchMastersLeaderboard() {
   try {
     const res = await fetch(
-      `https://site.api.espn.com/apis/site/v2/sports/golf/pga/leaderboard?event=401811941`,
+      `https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard`,
       { cache: 'no-store' }
     )
     if (!res.ok) throw new Error('ESPN fetch failed')
@@ -13,7 +13,7 @@ export async function fetchMastersLeaderboard() {
       e.shortName?.toLowerCase().includes('masters')
     ) || events[0]
 
-    if (!masters) return { golfers: [], round: null, status: null }
+    if (!masters) return { golfers: [], round: null, status: 'unavailable' }
 
     const competition = masters.competitions?.[0]
     const competitors = competition?.competitors || []
@@ -28,15 +28,21 @@ export async function fetchMastersLeaderboard() {
         ? parseInt(c.status.position.id)
         : 999
 
+      const scoreVal = c.statistics?.find(s => s.name === 'totalScore')?.displayValue
+        || c.score || 'E'
+
+      const totalScore = parseInt(c.statistics?.find(s => s.name === 'totalScore')?.value) || 0
+      const todayScore = parseInt(c.linescores?.slice(-1)[0]?.value) || 0
+
       return {
         id: athlete.id,
         name: athlete.displayName || athlete.fullName || 'Unknown',
         shortName: athlete.shortName || athlete.displayName,
         position: isCut ? null : position,
-        positionDisplay: isCut ? 'CUT' : (c.status?.position?.displayName || `T${position}`),
-        score: c.score || 'E',
-        totalScore: c.totalScore || 0,
-        today: c.linescores?.slice(-1)[0]?.value || 0,
+        positionDisplay: isCut ? 'CUT' : (c.status?.position?.displayName || `${position}`),
+        score: scoreVal,
+        totalScore,
+        today: todayScore,
         thru: c.status?.thru || '-',
         isCut,
       }
