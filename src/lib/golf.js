@@ -37,7 +37,7 @@ export async function fetchMastersLeaderboard() {
 
       // Thru holes - from statistics
       const thruStat = c.statistics?.categories?.[0]?.stats?.find(s => s.displayValue === '3' || parseInt(s.displayValue) > 0)
-      const thruVal = c.statistics?.categories?.[0]?.stats?.[7]?.displayValue || '-'
+      const thruVal = completedScores.length > 0 ? String(completedScores[completedScores.length - 1].period || '-') : '-'
 
       // Has the player started?
       const hasStarted = completedScores.length > 0
