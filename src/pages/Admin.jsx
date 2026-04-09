@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { getParticipants, addParticipant, updateParticipant, deleteParticipant, setPicks } from '../lib/supabase'
 
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'masters2025'
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'masters2026'
 
 const inputStyle = {
   background: 'rgba(255,255,255,0.06)',
