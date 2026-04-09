@@ -53,12 +53,18 @@ export async function fetchMastersLeaderboard() {
       }
     })
 
-    const started = golfers.filter(g => g.hasStarted).sort((a, b) => a.totalScore - b.totalScore)
-    const notStarted = golfers.filter(g => !g.hasStarted)
-    started.forEach((g, i) => {
-      g.position = i + 1
-      g.positionDisplay = `${i + 1}`
-    })
+        const started = golfers.filter(g => g.hasStarted).sort((a, b) => a.totalScore - b.totalScore)
+        const notStarted = golfers.filter(g => !g.hasStarted)
+        started.forEach((g, i) => {
+          if (i > 0 && g.totalScore === started[i - 1].totalScore) {
+            g.position = started[i - 1].position
+            g.positionDisplay = `T${g.position}`
+            started[i - 1].positionDisplay = `T${g.position}`
+          } else {
+            g.position = i + 1
+            g.positionDisplay = `${i + 1}`
+          }
+        })
 
     return {
       golfers: [...started, ...notStarted],
