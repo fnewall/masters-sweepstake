@@ -17,43 +17,64 @@ export async function fetchMastersLeaderboard() {
 
     const competition = masters.competitions?.[0]
     const competitors = competition?.competitors || []
-    console.log('ESPN competitor:', JSON.stringify(competitors[0]))
+    const status = competition?.status?.type?.description || 'In Progress'
+    const round = competition?.status?.period || 1
 
-    const golfers = competitors.map(c => {
+    const golfers = competitors.map((c, index) => {
       const athlete = c.athlete || {}
-      const isCut = c.status?.type?.name === 'cut' ||
-        c.status?.displayValue?.toLowerCase().includes('cut') ||
-        c.status?.type?.description?.toLowerCase().includes('cut')
 
-      const position = c.status?.position?.id
-        ? parseInt(c.status.position.id)
-        : 999
+      // Score is in linescores - sum all completed rounds
+      const linescores = c.linescores || []
+      const completedScores = linescores.filter(l => l.scoreType?.displayValue !== undefined)
+      
+      // Total score relative to par
+      const totalScoreVal = completedScores.reduce((sum, l) => sum + (parseInt(l.value) || 0), 0)
+      
+      // Today's score is the last linescore
+      const todayScore = completedScores.length > 0 
+        ? (parseInt(completedScores[completedScores.length - 1].value) || 0)
+        : 0
 
-      const totalScore = parseInt(c.statistics?.find(s => s.name === 'totalScore')?.value) || 0
-      const todayScore = parseInt(c.linescores?.slice(-1)[0]?.value) || 0
+      // Thru holes - from statistics
+      const thruStat = c.statistics?.categories?.[0]?.stats?.find(s => s.displayValue === '3' || parseInt(s.displayValue) > 0)
+      const thruVal = c.statistics?.categories?.[0]?.stats?.[7]?.displayValue || '-'
+
+      // Has the player started?
+      const hasStarted = completedScores.length > 0
+
+      // Position is based on array order (ESPN returns them sorted)
+      const position = index + 1
 
       return {
         id: athlete.id,
         name: athlete.displayName || athlete.fullName || 'Unknown',
         shortName: athlete.shortName || athlete.displayName,
-        position: isCut ? null : position,
-        positionDisplay: isCut ? 'CUT' : (c.status?.position?.displayName || `${position}`),
-        score: c.score || 'E',
-        totalScore,
+        position: hasStarted ? position : 999,
+        positionDisplay: hasStarted ? `${position}` : '-',
+        totalScore: totalScoreVal,
         today: todayScore,
-        thru: c.status?.thru || '-',
-        isCut,
+        thru: thruVal,
+        isCut: false,
+        hasStarted,
       }
-    }).sort((a, b) => {
-      if (a.isCut && !b.isCut) return 1
-      if (!a.isCut && b.isCut) return -1
-      return (a.position || 999) - (b.position || 999)
     })
 
-    const status = competition?.status?.type?.description || 'In Progress'
-    const round = competition?.status?.period || 1
+    // Re-sort by total score for those who have started
+    const started = golfers.filter(g => g.hasStarted).sort((a, b) => a.totalScore - b.totalScore)
+    const notStarted = golfers.filter(g => !g.hasStarted)
 
-    return { golfers, round, status, eventName: masters.name }
+    // Assign proper positions
+    started.forEach((g, i) => {
+      g.position = i + 1
+      g.positionDisplay = `${i + 1}`
+    })
+
+    return { 
+      golfers: [...started, ...notStarted], 
+      round, 
+      status, 
+      eventName: masters.name 
+    }
   } catch (err) {
     console.error('Failed to fetch leaderboard:', err)
     return { golfers: [], round: null, status: 'unavailable' }
@@ -66,7 +87,6 @@ function fuzzyMatch(search, target) {
   if (target.includes(search)) return true
   const searchParts = search.split(' ')
   const targetParts = target.split(' ')
-  // Check last name match with typo tolerance
   const searchLast = searchParts[searchParts.length - 1]
   const targetLast = targetParts[targetParts.length - 1]
   if (searchLast.length > 3) {
@@ -77,7 +97,6 @@ function fuzzyMatch(search, target) {
     }
     if (diff <= 2) return true
   }
-  // Check if all search parts appear somewhere in target
   return searchParts.every(part => part.length > 2 && target.includes(part))
 }
 
@@ -89,15 +108,8 @@ export function calculateSweepstakeScores(participants, golfers) {
     const pickDetails = picks.map(pick => {
       const searchName = pick.golfer_name.toLowerCase().trim()
 
-      // Try exact match first
       let golfer = golfers.find(g => g.name.toLowerCase().trim() === searchName)
-
-      // Try fuzzy match
-      if (!golfer) {
-        golfer = golfers.find(g => fuzzyMatch(searchName, g.name))
-      }
-
-      // Try last name only
+      if (!golfer) golfer = golfers.find(g => fuzzyMatch(searchName, g.name))
       if (!golfer) {
         const lastName = searchName.split(' ').slice(-1)[0]
         golfer = golfers.find(g => g.name.toLowerCase().includes(lastName))
@@ -113,6 +125,9 @@ export function calculateSweepstakeScores(participants, golfers) {
           points = 100
           positionDisplay = 'CUT'
           isCut = true
+        } else if (!golfer.hasStarted) {
+          points = 50
+          positionDisplay = 'DNS'
         } else {
           points = golfer.position || 100
           position = golfer.position
@@ -127,7 +142,11 @@ export function calculateSweepstakeScores(participants, golfers) {
         position,
         positionDisplay,
         isCut,
-        score: golfer?.score || '-',
+        score: golfer?.totalScore !== undefined 
+          ? golfer.totalScore === 0 ? 'E' 
+            : golfer.totalScore > 0 ? `+${golfer.totalScore}` 
+            : `${golfer.totalScore}`
+          : '-',
         today: golfer?.today || 0,
         thru: golfer?.thru || '-',
         found: !!golfer,
