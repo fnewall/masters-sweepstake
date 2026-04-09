@@ -23,25 +23,14 @@ export async function fetchMastersLeaderboard() {
     const golfers = competitors.map((c, index) => {
       const athlete = c.athlete || {}
       const linescores = c.linescores || []
-      const stats = c.statistics?.categories?.[0]?.stats || []
-
-      // Total score is in linescores - each entry is a round
-      // value is score relative to par for that round
       const roundScores = linescores.filter(l => l.scoreType?.displayValue !== undefined)
       const totalScoreVal = parseInt(c.score) || roundScores.reduce((sum, l) => sum + (parseInt(l.value) || 0), 0)
-
-      // Today's round score
-      const todayScore = roundScores.find(l => l.period === round)
-          ? (parseInt(roundScores.find(l => l.period === round).value) || 0)
-          : roundScores.length > 0
-            ? (parseInt(roundScores[roundScores.length - 1].value) || 0)
-            : 0
-
-      // Thru holes - stats[5] appears to be holes played
       const currentRoundData = linescores.find(l => l.period === round)
+      const completedRounds = roundScores.filter(l => l.period < round).length
       const holesPlayed = currentRoundData?.linescores?.length || 0
-      const thruVal = holesPlayed > 0 ? String(holesPlayed) : '-'
-      const hasStarted = parseInt(c.score) !== undefined || roundScores.length > 0 || (thruVal !== '-' && thruVal !== '0')
+      const totalHoles = (completedRounds * 18) + holesPlayed
+      const thruVal = totalHoles > 0 ? String(totalHoles) : '-'
+      const hasStarted = totalHoles > 0 || parseInt(c.score) !== 0
 
       return {
         id: athlete.id,
@@ -50,25 +39,24 @@ export async function fetchMastersLeaderboard() {
         position: hasStarted ? index + 1 : 999,
         positionDisplay: hasStarted ? `${index + 1}` : '-',
         totalScore: totalScoreVal,
-        today: todayScore,
         thru: thruVal,
         isCut: false,
         hasStarted,
       }
     })
 
-        const started = golfers.filter(g => g.hasStarted).sort((a, b) => a.totalScore - b.totalScore)
-        const notStarted = golfers.filter(g => !g.hasStarted)
-        started.forEach((g, i) => {
-          if (i > 0 && g.totalScore === started[i - 1].totalScore) {
-            g.position = started[i - 1].position
-            g.positionDisplay = `T${g.position}`
-            started[i - 1].positionDisplay = `T${g.position}`
-          } else {
-            g.position = i + 1
-            g.positionDisplay = `${i + 1}`
-          }
-        })
+    const started = golfers.filter(g => g.hasStarted).sort((a, b) => a.totalScore - b.totalScore)
+    const notStarted = golfers.filter(g => !g.hasStarted)
+    started.forEach((g, i) => {
+      if (i > 0 && g.totalScore === started[i - 1].totalScore) {
+        g.position = started[i - 1].position
+        g.positionDisplay = `T${g.position}`
+        started[i - 1].positionDisplay = `T${g.position}`
+      } else {
+        g.position = i + 1
+        g.positionDisplay = `${i + 1}`
+      }
+    })
 
     return {
       golfers: [...started, ...notStarted],
@@ -147,7 +135,6 @@ export function calculateSweepstakeScores(participants, golfers) {
             : golfer.totalScore > 0 ? `+${golfer.totalScore}`
             : `${golfer.totalScore}`
           : '-',
-        today: golfer?.today || 0,
         thru: golfer?.thru || '-',
         found: !!golfer,
       }
