@@ -17,7 +17,7 @@ export async function fetchMastersLeaderboard() {
 
     const competition = masters.competitions?.[0]
     const competitors = competition?.competitors || []
-    console.log('ESPN status:', JSON.stringify(competitors[0]?.status))
+    console.log('ESPN competitor:', JSON.stringify(competitors[0]))
 
     const golfers = competitors.map(c => {
       const athlete = c.athlete || {}
