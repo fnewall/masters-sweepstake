@@ -1,7 +1,7 @@
 import React from 'react'
 
 const medals = ['🥇', '🥈', '🥉']
-const podiumHeights = ['140px', '100px', '80px']
+const podiumHeights = ['120px', '90px', '70px']
 const podiumOrder = [1, 0, 2]
 
 export default function Podium({ top3 }) {
@@ -14,9 +14,10 @@ export default function Podium({ top3 }) {
       display: 'flex',
       alignItems: 'flex-end',
       justifyContent: 'center',
-      gap: '12px',
-      padding: '40px 20px 0',
+      gap: '6px',
+      padding: '30px 4px 0',
       marginBottom: '8px',
+      overflow: 'hidden',
     }}>
       {displayed.map((p, vi) => {
         const isWinner = podiumOrder[vi] === 0
@@ -28,6 +29,8 @@ export default function Podium({ top3 }) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            flex: isWinner ? '1.2' : '1',
+            minWidth: 0,
             animation: `fadeIn 0.6s ease ${vi * 0.15}s both`,
           }}>
             <div style={{
@@ -37,40 +40,44 @@ export default function Podium({ top3 }) {
               border: isWinner
                 ? '1px solid rgba(201,168,76,0.6)'
                 : '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '12px',
-              padding: '14px 20px',
+              borderRadius: '10px',
+              padding: '10px 8px',
               textAlign: 'center',
-              marginBottom: '12px',
-              minWidth: isWinner ? '180px' : '150px',
+              marginBottom: '8px',
+              width: '100%',
               animation: isWinner ? 'glow 3s ease infinite' : 'none',
               position: 'relative',
+              boxSizing: 'border-box',
             }}>
               {isWinner && (
                 <div style={{
                   position: 'absolute',
-                  top: '-14px',
+                  top: '-12px',
                   left: '50%',
                   transform: 'translateX(-50%)',
-                  fontSize: '24px',
+                  fontSize: '18px',
                   animation: 'float 3s ease infinite',
                 }}>👑</div>
               )}
               <div style={{
-                fontSize: isWinner ? '15px' : '13px',
+                fontSize: isWinner ? '13px' : '11px',
                 fontFamily: "'Playfair Display', serif",
                 fontWeight: isWinner ? '700' : '600',
                 color: isWinner ? 'var(--gold-light)' : 'var(--white)',
-                marginBottom: '6px',
-                marginTop: isWinner ? '8px' : '0',
+                marginBottom: '4px',
+                marginTop: isWinner ? '6px' : '0',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}>{p.name}</div>
               <div style={{
-                fontSize: '11px',
+                fontSize: '10px',
                 color: 'var(--text-muted)',
               }}>{p.totalScore} pts</div>
             </div>
 
             <div style={{
-              width: isWinner ? '160px' : '130px',
+              width: '100%',
               height,
               background: isWinner
                 ? 'linear-gradient(180deg, rgba(201,168,76,0.4) 0%, rgba(201,168,76,0.15) 100%)'
@@ -81,19 +88,19 @@ export default function Podium({ top3 }) {
                 ? '1px solid rgba(201,168,76,0.5)'
                 : '1px solid rgba(255,255,255,0.1)',
               borderBottom: 'none',
-              borderRadius: '8px 8px 0 0',
+              borderRadius: '6px 6px 0 0',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexDirection: 'column',
-              gap: '4px',
+              gap: '2px',
             }}>
-              <div style={{ fontSize: isWinner ? '28px' : '22px' }}>
+              <div style={{ fontSize: isWinner ? '22px' : '18px' }}>
                 {medals[podiumOrder[vi]]}
               </div>
               <div style={{
                 fontFamily: "'Playfair Display', serif",
-                fontSize: isWinner ? '28px' : '22px',
+                fontSize: isWinner ? '22px' : '18px',
                 fontWeight: '900',
                 color: isWinner ? 'var(--gold)' : 'var(--text-muted)',
               }}>
