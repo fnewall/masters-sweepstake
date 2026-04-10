@@ -8,6 +8,16 @@ import NewsTicker from '../components/NewsTicker'
 
 const REFRESH_INTERVAL = 60 * 1000
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return isMobile
+}
+
 export default function Leaderboard() {
   const [participants, setParticipants] = useState([])
   const [golfers, setGolfers] = useState([])
@@ -19,6 +29,7 @@ export default function Leaderboard() {
   const [lastUpdated, setLastUpdated] = useState(null)
   const [loading, setLoading] = useState(true)
   const intervalRef = useRef(null)
+  const isMobile = useIsMobile()
 
   async function loadAll() {
     try {
@@ -62,9 +73,9 @@ export default function Leaderboard() {
         pointerEvents: 'none', zIndex: 0,
       }} />
 
-      <div style={{ position: 'relative', zIndex: 1, maxWidth: '1200px', margin: '0 auto', padding: '0 20px 60px' }}>
-        <header style={{ textAlign: 'center', paddingTop: '48px', paddingBottom: '20px' }}>
-          <div style={{ fontSize: '28px', marginBottom: '12px', animation: 'float 4s ease infinite' }}>🌸</div>
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: '1200px', margin: '0 auto', padding: '0 16px 60px' }}>
+        <header style={{ textAlign: 'center', paddingTop: '40px', paddingBottom: '20px' }}>
+          <div style={{ fontSize: '24px', marginBottom: '10px', animation: 'float 4s ease infinite' }}>🌸</div>
           <div style={{
             fontFamily: "'DM Mono', monospace",
             fontSize: '10px', letterSpacing: '0.3em',
@@ -72,7 +83,7 @@ export default function Leaderboard() {
           }}>AUGUSTA NATIONAL · 2026</div>
           <h1 style={{
             fontFamily: "'Playfair Display', serif",
-            fontSize: 'clamp(32px, 6vw, 60px)',
+            fontSize: 'clamp(28px, 6vw, 60px)',
             fontWeight: '900', fontStyle: 'italic',
             background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 40%, var(--pink-light) 100%)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
@@ -80,7 +91,7 @@ export default function Leaderboard() {
           }}>The Masters</h1>
           <div style={{
             fontFamily: "'Cormorant Garamond', serif",
-            fontSize: '16px', fontStyle: 'italic',
+            fontSize: '15px', fontStyle: 'italic',
             color: 'var(--text-muted)', marginBottom: '16px',
           }}>Sweepstake Leaderboard</div>
           <div style={{
@@ -109,7 +120,13 @@ export default function Leaderboard() {
             <div style={{ fontSize: '12px', letterSpacing: '0.1em' }}>Loading leaderboard...</div>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px', alignItems: 'start' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : '1fr 340px',
+            gap: '24px',
+            alignItems: 'start',
+          }}>
+            {/* LEFT: Sweepstake */}
             <div>
               {top3.length > 0 && <Podium top3={top3} />}
               <div style={{
@@ -117,14 +134,16 @@ export default function Leaderboard() {
                 borderRadius: '16px', overflow: 'hidden', marginTop: '24px',
               }}>
                 <div style={{
-                  display: 'grid', gridTemplateColumns: '48px 1fr 80px 80px 40px',
-                  padding: '10px 20px', fontSize: '9px', letterSpacing: '0.12em',
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? '36px 1fr 60px 40px' : '48px 1fr 80px 80px 40px',
+                  padding: '10px 16px', fontSize: '9px', letterSpacing: '0.12em',
                   color: 'var(--text-muted)', borderBottom: '1px solid var(--border)',
                   background: 'linear-gradient(90deg, rgba(201,168,76,0.08) 0%, transparent 100%)',
                 }}>
-                  <span>POS</span><span>PARTICIPANT</span>
-                  <span style={{ textAlign: 'right' }}>POINTS</span>
-                  <span style={{ textAlign: 'right' }}>MOVE</span>
+                  <span>POS</span>
+                  <span>PARTICIPANT</span>
+                  <span style={{ textAlign: 'right' }}>PTS</span>
+                  {!isMobile && <span style={{ textAlign: 'right' }}>MOVE</span>}
                   <span />
                 </div>
                 {scored.length === 0 ? (
@@ -134,13 +153,14 @@ export default function Leaderboard() {
                   </div>
                 ) : (
                   scored.map((p, i) => (
-                    <ParticipantRow key={p.id} participant={p} previousRank={previousRanks[p.id]} index={i} />
+                    <ParticipantRow key={p.id} participant={p} previousRank={previousRanks[p.id]} index={i} isMobile={isMobile} />
                   ))
                 )}
               </div>
             </div>
 
-            <div style={{ position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* RIGHT: Secondary */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <NewsTicker headlines={news} />
               <GolfLeaderboard golfers={golfers} round={round} status={status} />
               <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)' }}>
