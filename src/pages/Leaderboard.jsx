@@ -73,32 +73,32 @@ export default function Leaderboard() {
         pointerEvents: 'none', zIndex: 0,
       }} />
 
-      <div style={{ position: 'relative', zIndex: 1, maxWidth: '1200px', margin: '0 auto', padding: '0 16px 60px' }}>
-        <header style={{ textAlign: 'center', paddingTop: '40px', paddingBottom: '20px' }}>
-          <div style={{ fontSize: '24px', marginBottom: '10px', animation: 'float 4s ease infinite' }}>🌸</div>
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: '1200px', margin: '0 auto', padding: '0 12px 60px' }}>
+        <header style={{ textAlign: 'center', paddingTop: '36px', paddingBottom: '16px' }}>
+          <div style={{ fontSize: '22px', marginBottom: '8px', animation: 'float 4s ease infinite' }}>🌸</div>
           <div style={{
             fontFamily: "'DM Mono', monospace",
-            fontSize: '10px', letterSpacing: '0.3em',
-            color: 'var(--green-light)', marginBottom: '8px',
+            fontSize: '9px', letterSpacing: '0.25em',
+            color: 'var(--green-light)', marginBottom: '6px',
           }}>AUGUSTA NATIONAL · 2026</div>
           <h1 style={{
             fontFamily: "'Playfair Display', serif",
-            fontSize: 'clamp(28px, 6vw, 60px)',
+            fontSize: 'clamp(24px, 8vw, 60px)',
             fontWeight: '900', fontStyle: 'italic',
             background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 40%, var(--pink-light) 100%)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text', lineHeight: '1.1', marginBottom: '8px',
+            backgroundClip: 'text', lineHeight: '1.1', marginBottom: '6px',
           }}>The Masters</h1>
           <div style={{
             fontFamily: "'Cormorant Garamond', serif",
-            fontSize: '15px', fontStyle: 'italic',
-            color: 'var(--text-muted)', marginBottom: '16px',
+            fontSize: '14px', fontStyle: 'italic',
+            color: 'var(--text-muted)', marginBottom: '12px',
           }}>Sweepstake Leaderboard</div>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
             background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)',
-            borderRadius: '20px', padding: '6px 16px',
-            fontSize: '11px', color: '#4ade80',
+            borderRadius: '20px', padding: '5px 14px',
+            fontSize: '10px', color: '#4ade80',
           }}>
             <span style={{
               width: '6px', height: '6px', borderRadius: '50%',
@@ -123,20 +123,20 @@ export default function Leaderboard() {
           <div style={{
             display: 'grid',
             gridTemplateColumns: isMobile ? '1fr' : '1fr 340px',
-            gap: '24px',
+            gap: '20px',
             alignItems: 'start',
           }}>
-            {/* LEFT: Sweepstake */}
             <div>
               {top3.length > 0 && <Podium top3={top3} />}
               <div style={{
                 background: 'var(--bg2)', border: '1px solid var(--border)',
-                borderRadius: '16px', overflow: 'hidden', marginTop: '24px',
+                borderRadius: '16px', overflow: 'hidden', marginTop: '20px',
               }}>
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: isMobile ? '36px 1fr 60px 40px' : '48px 1fr 80px 80px 40px',
-                  padding: '10px 16px', fontSize: '9px', letterSpacing: '0.12em',
+                  gridTemplateColumns: isMobile ? '28px 1fr 44px 24px' : '48px 1fr 80px 80px 40px',
+                  padding: isMobile ? '8px 12px' : '10px 20px',
+                  fontSize: '9px', letterSpacing: '0.1em',
                   color: 'var(--text-muted)', borderBottom: '1px solid var(--border)',
                   background: 'linear-gradient(90deg, rgba(201,168,76,0.08) 0%, transparent 100%)',
                 }}>
@@ -159,7 +159,6 @@ export default function Leaderboard() {
               </div>
             </div>
 
-            {/* RIGHT: Secondary */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <NewsTicker headlines={news} />
               <GolfLeaderboard golfers={golfers} round={round} status={status} />
