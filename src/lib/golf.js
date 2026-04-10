@@ -73,20 +73,26 @@ export async function fetchMastersLeaderboard() {
 function fuzzyMatch(search, target) {
   search = search.toLowerCase().trim()
   target = target.toLowerCase().trim()
-  if (target.includes(search)) return true
+
+  if (target === search) return true
+  if (target.includes(search) && search.length > 4) return true
+
   const searchParts = search.split(' ')
   const targetParts = target.split(' ')
   const searchLast = searchParts[searchParts.length - 1]
   const targetLast = targetParts[targetParts.length - 1]
-  if (searchLast.length > 3) {
-    let diff = 0
-    const len = Math.max(searchLast.length, targetLast.length)
-    for (let i = 0; i < len; i++) {
-      if (searchLast[i] !== targetLast[i]) diff++
-    }
-    if (diff <= 2) return true
+
+  if (searchLast.length < 4) return false
+  if (searchLast[0] !== targetLast[0]) return false
+  if (Math.abs(searchLast.length - targetLast.length) > 2) return false
+
+  let diff = 0
+  const len = Math.max(searchLast.length, targetLast.length)
+  for (let i = 0; i < len; i++) {
+    if ((searchLast[i] || '') !== (targetLast[i] || '')) diff++
   }
-  return searchParts.every(part => part.length > 2 && target.includes(part))
+
+  return diff <= 1
 }
 
 export function calculateSweepstakeScores(participants, golfers) {
@@ -100,7 +106,9 @@ export function calculateSweepstakeScores(participants, golfers) {
       if (!golfer) golfer = golfers.find(g => fuzzyMatch(searchName, g.name))
       if (!golfer) {
         const lastName = searchName.split(' ').slice(-1)[0]
-        golfer = golfers.find(g => g.name.toLowerCase().includes(lastName))
+        if (lastName.length >= 4) {
+          golfer = golfers.find(g => g.name.toLowerCase().includes(lastName))
+        }
       }
 
       let points = 100
