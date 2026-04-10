@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-export default function ParticipantRow({ participant, previousRank, index }) {
+export default function ParticipantRow({ participant, previousRank, index, isMobile }) {
   const [expanded, setExpanded] = useState(false)
   const { rank, name, totalScore, pickDetails } = participant
 
@@ -15,9 +15,9 @@ export default function ParticipantRow({ participant, previousRank, index }) {
         onClick={() => setExpanded(!expanded)}
         style={{
           display: 'grid',
-          gridTemplateColumns: '48px 1fr 80px 80px 40px',
+          gridTemplateColumns: isMobile ? '36px 1fr 60px 40px' : '48px 1fr 80px 80px 40px',
           alignItems: 'center',
-          padding: '14px 20px',
+          padding: '12px 16px',
           cursor: 'pointer',
           background: isLeader
             ? 'linear-gradient(90deg, rgba(201,168,76,0.12) 0%, transparent 100%)'
@@ -34,7 +34,7 @@ export default function ParticipantRow({ participant, previousRank, index }) {
       >
         <div style={{
           fontFamily: "'Playfair Display', serif",
-          fontSize: '20px',
+          fontSize: isMobile ? '16px' : '20px',
           fontWeight: '700',
           color: rank <= 3 ? ['var(--gold)', '#c0c0c0', '#cd7f32'][rank - 1] : 'var(--text-muted)',
         }}>{rank}</div>
@@ -42,7 +42,7 @@ export default function ParticipantRow({ participant, previousRank, index }) {
         <div>
           <div style={{
             fontFamily: "'Playfair Display', serif",
-            fontSize: '15px',
+            fontSize: isMobile ? '13px' : '15px',
             fontWeight: isLeader ? '700' : '500',
             color: isLeader ? 'var(--gold-light)' : 'var(--white)',
           }}>{name}</div>
@@ -53,23 +53,25 @@ export default function ParticipantRow({ participant, previousRank, index }) {
 
         <div style={{
           textAlign: 'right',
-          fontSize: '18px',
+          fontSize: isMobile ? '14px' : '18px',
           fontWeight: '500',
           color: isLeader ? 'var(--gold)' : 'var(--white)',
         }}>{totalScore}</div>
 
-        <div style={{
-          textAlign: 'right',
-          fontSize: '13px',
-          color: movementColor,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          gap: '4px',
-        }}>
-          <span>{movementIcon}</span>
-          {movement !== 0 && <span>{Math.abs(movement)}</span>}
-        </div>
+        {!isMobile && (
+          <div style={{
+            textAlign: 'right',
+            fontSize: '13px',
+            color: movementColor,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: '4px',
+          }}>
+            <span>{movementIcon}</span>
+            {movement !== 0 && <span>{Math.abs(movement)}</span>}
+          </div>
+        )}
 
         <div style={{
           textAlign: 'right',
@@ -84,24 +86,24 @@ export default function ParticipantRow({ participant, previousRank, index }) {
         <div style={{
           background: 'rgba(0,0,0,0.3)',
           borderBottom: '1px solid var(--border)',
-          padding: '12px 20px 16px 68px',
+          padding: '12px 16px 16px',
           animation: 'fadeIn 0.2s ease',
         }}>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: '10px',
+            gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '8px',
           }}>
             {pickDetails?.map((pick, i) => (
               <div key={i} style={{
                 background: pick.isCut ? 'rgba(248,113,113,0.08)' : 'rgba(255,255,255,0.04)',
                 border: pick.isCut ? '1px solid rgba(248,113,113,0.3)' : '1px solid var(--border)',
                 borderRadius: '8px',
-                padding: '10px 14px',
+                padding: '10px 12px',
               }}>
                 <div style={{
                   fontFamily: "'Playfair Display', serif",
-                  fontSize: '13px',
+                  fontSize: '12px',
                   color: pick.isCut ? '#f87171' : 'var(--white)',
                   marginBottom: '4px',
                 }}>{pick.golferName}</div>
