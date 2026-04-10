@@ -1,3 +1,8 @@
+const normalize = str => str.toLowerCase().trim()
+  .replace(/å/g, 'a').replace(/ä/g, 'a').replace(/ö/g, 'o')
+  .replace(/é/g, 'e').replace(/ü/g, 'u').replace(/ñ/g, 'n')
+  .replace(/ó/g, 'o').replace(/á/g, 'a').replace(/í/g, 'i')
+
 export async function fetchMastersLeaderboard() {
   try {
     const res = await fetch(
@@ -71,8 +76,8 @@ export async function fetchMastersLeaderboard() {
 }
 
 function fuzzyMatch(search, target) {
-  search = search.toLowerCase().trim()
-  target = target.toLowerCase().trim()
+  search = normalize(search)
+  target = normalize(target)
 
   if (target === search) return true
   if (target.includes(search) && search.length > 4) return true
@@ -101,13 +106,13 @@ export function calculateSweepstakeScores(participants, golfers) {
     let totalScore = 0
 
     const pickDetails = picks.map(pick => {
-      const searchName = pick.golfer_name.toLowerCase().trim()
-      let golfer = golfers.find(g => g.name.toLowerCase().trim() === searchName)
+      const searchName = normalize(pick.golfer_name)
+      let golfer = golfers.find(g => normalize(g.name) === searchName)
       if (!golfer) golfer = golfers.find(g => fuzzyMatch(searchName, g.name))
       if (!golfer) {
         const lastName = searchName.split(' ').slice(-1)[0]
         if (lastName.length >= 4) {
-          golfer = golfers.find(g => g.name.toLowerCase().includes(lastName))
+          golfer = golfers.find(g => normalize(g.name).includes(lastName))
         }
       }
 
