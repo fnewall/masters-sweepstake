@@ -107,12 +107,21 @@ export function calculateSweepstakeScores(participants, golfers) {
 
     const pickDetails = picks.map(pick => {
       const searchName = normalize(pick.golfer_name)
+
+      // 1. Exact full name match
       let golfer = golfers.find(g => normalize(g.name) === searchName)
+
+      // 2. Fuzzy match (handles typos in longer names)
       if (!golfer) golfer = golfers.find(g => fuzzyMatch(searchName, g.name))
+
+      // 3. Exact last name match (handles short names like Rai, Day, Im)
       if (!golfer) {
         const lastName = searchName.split(' ').slice(-1)[0]
-        if (lastName.length >= 4) {
-          golfer = golfers.find(g => normalize(g.name).includes(lastName))
+        if (lastName.length >= 2) {
+          golfer = golfers.find(g => {
+            const parts = normalize(g.name).split(' ')
+            return parts[parts.length - 1] === lastName
+          })
         }
       }
 
