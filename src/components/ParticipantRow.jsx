@@ -15,9 +15,9 @@ export default function ParticipantRow({ participant, previousRank, index, isMob
         onClick={() => setExpanded(!expanded)}
         style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? '36px 1fr 60px 40px' : '48px 1fr 80px 80px 40px',
+          gridTemplateColumns: isMobile ? '28px 1fr 44px 24px' : '48px 1fr 80px 80px 40px',
           alignItems: 'center',
-          padding: '12px 16px',
+          padding: isMobile ? '10px 12px' : '14px 20px',
           cursor: 'pointer',
           background: isLeader
             ? 'linear-gradient(90deg, rgba(201,168,76,0.12) 0%, transparent 100%)'
@@ -34,26 +34,31 @@ export default function ParticipantRow({ participant, previousRank, index, isMob
       >
         <div style={{
           fontFamily: "'Playfair Display', serif",
-          fontSize: isMobile ? '16px' : '20px',
+          fontSize: isMobile ? '14px' : '20px',
           fontWeight: '700',
           color: rank <= 3 ? ['var(--gold)', '#c0c0c0', '#cd7f32'][rank - 1] : 'var(--text-muted)',
         }}>{rank}</div>
 
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div style={{
             fontFamily: "'Playfair Display', serif",
-            fontSize: isMobile ? '13px' : '15px',
+            fontSize: isMobile ? '12px' : '15px',
             fontWeight: isLeader ? '700' : '500',
             color: isLeader ? 'var(--gold-light)' : 'var(--white)',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}>{name}</div>
-          <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
-            {pickDetails?.map(p => p.golferName).join(' · ')}
-          </div>
+          {!isMobile && (
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              {pickDetails?.map(p => p.golferName).join(' · ')}
+            </div>
+          )}
         </div>
 
         <div style={{
           textAlign: 'right',
-          fontSize: isMobile ? '14px' : '18px',
+          fontSize: isMobile ? '13px' : '18px',
           fontWeight: '500',
           color: isLeader ? 'var(--gold)' : 'var(--white)',
         }}>{totalScore}</div>
@@ -86,7 +91,7 @@ export default function ParticipantRow({ participant, previousRank, index, isMob
         <div style={{
           background: 'rgba(0,0,0,0.3)',
           borderBottom: '1px solid var(--border)',
-          padding: '12px 16px 16px',
+          padding: isMobile ? '10px 12px 14px' : '12px 20px 16px 68px',
           animation: 'fadeIn 0.2s ease',
         }}>
           <div style={{
@@ -99,18 +104,21 @@ export default function ParticipantRow({ participant, previousRank, index, isMob
                 background: pick.isCut ? 'rgba(248,113,113,0.08)' : 'rgba(255,255,255,0.04)',
                 border: pick.isCut ? '1px solid rgba(248,113,113,0.3)' : '1px solid var(--border)',
                 borderRadius: '8px',
-                padding: '10px 12px',
+                padding: '8px 10px',
               }}>
                 <div style={{
                   fontFamily: "'Playfair Display', serif",
-                  fontSize: '12px',
+                  fontSize: '11px',
                   color: pick.isCut ? '#f87171' : 'var(--white)',
                   marginBottom: '4px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                 }}>{pick.golferName}</div>
                 <div style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  fontSize: '11px',
+                  fontSize: '10px',
                   color: 'var(--text-muted)',
                 }}>
                   <span style={{ color: pick.isCut ? '#f87171' : 'var(--gold)' }}>{pick.positionDisplay}</span>
