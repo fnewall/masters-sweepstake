@@ -3,14 +3,52 @@ const normalize = str => str.toLowerCase().trim()
   .replace(/é/g, 'e').replace(/ü/g, 'u').replace(/ñ/g, 'n')
   .replace(/ó/g, 'o').replace(/á/g, 'a').replace(/í/g, 'i')
 
-export async function fetchMastersLeaderboard() {
+async function fetchCutPlayers() {
   try {
     const res = await fetch(
       `https://site.web.api.espn.com/apis/site/v2/sports/golf/leaderboard?league=pga`,
       { cache: 'no-store' }
     )
-    if (!res.ok) throw new Error('ESPN fetch failed')
+    if (!res.ok) return new Set()
     const json = await res.json()
+    const events = json.events || []
+    const masters = events.find(e =>
+      e.name?.toLowerCase().includes('masters') ||
+      e.shortName?.toLowerCase().includes('masters')
+    ) || events[0]
+    if (!masters) return new Set()
+    const competitors = masters.competitions?.[0]?.competitors || []
+    const cutNames = new Set()
+    competitors.forEach(c => {
+      const isCut =
+        c.status?.type?.name === 'cut' ||
+        c.status?.type?.id === '3' ||
+        c.status?.displayValue?.toUpperCase() === 'CUT' ||
+        c.status?.type?.description?.toLowerCase().includes('cut') ||
+        c.cut === true
+      if (isCut) {
+        const name = c.athlete?.displayName || c.athlete?.fullName || ''
+        if (name) cutNames.add(normalize(name))
+      }
+    })
+    return cutNames
+  } catch {
+    return new Set()
+  }
+}
+
+export async function fetchMastersLeaderboard() {
+  try {
+    const [scoreRes, cutPlayers] = await Promise.all([
+      fetch(
+        `https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard`,
+        { cache: 'no-store' }
+      ),
+      fetchCutPlayers()
+    ])
+
+    if (!scoreRes.ok) throw new Error('ESPN fetch failed')
+    const json = await scoreRes.json()
 
     const events = json.events || []
     const masters = events.find(e =>
@@ -25,6 +63,11 @@ export async function fetchMastersLeaderboard() {
     const status = competition?.status?.type?.description || 'In Progress'
     const round = competition?.status?.period || 1
 
+    const maxRoundsPlayed = Math.max(...competitors.map(c =>
+      (c.linescores || []).filter(l => l.scoreType?.displayValue !== undefined).length
+    ))
+    const round3Started = maxRoundsPlayed >= 3 || round >= 3
+
     const golfers = competitors.map((c, index) => {
       const athlete = c.athlete || {}
       const linescores = c.linescores || []
@@ -37,13 +80,10 @@ export async function fetchMastersLeaderboard() {
       const thruVal = totalHoles > 0 ? String(totalHoles) : '-'
       const hasStarted = totalHoles > 0 || parseInt(c.score) !== 0
 
-      const isCut =
-        c.status?.type?.name === 'cut' ||
-        c.status?.type?.id === '3' ||
-        c.status?.displayValue?.toUpperCase() === 'CUT' ||
-        c.status?.type?.description?.toLowerCase().includes('cut') ||
-        c.cut === true ||
-        c.didNotFinish === true
+      const playerName = normalize(athlete.displayName || athlete.fullName || '')
+      const isCutByLeaderboard = cutPlayers.has(playerName)
+      const isCutByRound = round3Started && roundScores.length <= 2 && roundScores.length > 0
+      const isCut = isCutByLeaderboard || isCutByRound
 
       return {
         id: athlete.id,
@@ -59,7 +99,7 @@ export async function fetchMastersLeaderboard() {
     })
 
     const started = golfers.filter(g => g.hasStarted && !g.isCut).sort((a, b) => a.totalScore - b.totalScore)
-    const cutPlayers = golfers.filter(g => g.isCut)
+    const cutPlayersList = golfers.filter(g => g.isCut)
     const notStarted = golfers.filter(g => !g.hasStarted && !g.isCut)
 
     started.forEach((g, i) => {
@@ -74,7 +114,7 @@ export async function fetchMastersLeaderboard() {
     })
 
     return {
-      golfers: [...started, ...notStarted, ...cutPlayers],
+      golfers: [...started, ...notStarted, ...cutPlayersList],
       round,
       status,
       eventName: masters.name
