@@ -25,6 +25,14 @@ export async function fetchMastersLeaderboard() {
     const status = competition?.status?.type?.description || 'In Progress'
     const round = competition?.status?.period || 1
 
+    // Find max rounds played across all competitors to detect if round 3 has started
+    const maxRoundsPlayed = Math.max(...competitors.map(c => {
+      const ls = c.linescores || []
+      return ls.filter(l => l.scoreType?.displayValue !== undefined).length
+    }))
+
+    const round3Started = maxRoundsPlayed >= 3 || round >= 3
+
     const golfers = competitors.map((c, index) => {
       const athlete = c.athlete || {}
       const linescores = c.linescores || []
@@ -37,10 +45,8 @@ export async function fetchMastersLeaderboard() {
       const thruVal = totalHoles > 0 ? String(totalHoles) : '-'
       const hasStarted = totalHoles > 0 || parseInt(c.score) !== 0
 
-      const isCut =
-        c.status?.type?.name === 'cut' ||
-        c.status?.displayValue?.toLowerCase().includes('cut') ||
-        c.status?.type?.description?.toLowerCase().includes('cut')
+      // Cut detection: if round 3 has started and player only has 2 rounds = missed cut
+      const isCut = round3Started && roundScores.length <= 2 && roundScores.length > 0
 
       return {
         id: athlete.id,
@@ -115,13 +121,8 @@ export function calculateSweepstakeScores(participants, golfers) {
     const pickDetails = picks.map(pick => {
       const searchName = normalize(pick.golfer_name)
 
-      // 1. Exact full name match
       let golfer = golfers.find(g => normalize(g.name) === searchName)
-
-      // 2. Fuzzy match (handles typos in longer names)
       if (!golfer) golfer = golfers.find(g => fuzzyMatch(searchName, g.name))
-
-      // 3. Exact last name match (handles short names like Rai, Day, Im)
       if (!golfer) {
         const lastName = searchName.split(' ').slice(-1)[0]
         if (lastName.length >= 2) {
