@@ -6,7 +6,7 @@ const normalize = str => str.toLowerCase().trim()
 export async function fetchMastersLeaderboard() {
   try {
     const res = await fetch(
-      `https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard`,
+      `https://site.web.api.espn.com/apis/site/v2/sports/golf/leaderboard?league=pga`,
       { cache: 'no-store' }
     )
     if (!res.ok) throw new Error('ESPN fetch failed')
@@ -25,14 +25,6 @@ export async function fetchMastersLeaderboard() {
     const status = competition?.status?.type?.description || 'In Progress'
     const round = competition?.status?.period || 1
 
-    // Find max rounds played across all competitors to detect if round 3 has started
-    const maxRoundsPlayed = Math.max(...competitors.map(c => {
-      const ls = c.linescores || []
-      return ls.filter(l => l.scoreType?.displayValue !== undefined).length
-    }))
-
-    const round3Started = maxRoundsPlayed >= 3 || round >= 3
-
     const golfers = competitors.map((c, index) => {
       const athlete = c.athlete || {}
       const linescores = c.linescores || []
@@ -45,8 +37,13 @@ export async function fetchMastersLeaderboard() {
       const thruVal = totalHoles > 0 ? String(totalHoles) : '-'
       const hasStarted = totalHoles > 0 || parseInt(c.score) !== 0
 
-      // Cut detection: if round 3 has started and player only has 2 rounds = missed cut
-      const isCut = round3Started && roundScores.length <= 2 && roundScores.length > 0
+      const isCut =
+        c.status?.type?.name === 'cut' ||
+        c.status?.type?.id === '3' ||
+        c.status?.displayValue?.toUpperCase() === 'CUT' ||
+        c.status?.type?.description?.toLowerCase().includes('cut') ||
+        c.cut === true ||
+        c.didNotFinish === true
 
       return {
         id: athlete.id,
